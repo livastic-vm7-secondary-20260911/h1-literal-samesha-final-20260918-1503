@@ -1,0 +1,25 @@
+name: CI
+on:
+  pull_request:
+    branches: [main]
+jobs:
+  gate:
+    name: gate-samesha
+    runs-on: ubuntu-latest
+    steps:
+      - name: Context-sensitive queue validation
+        shell: bash
+        run: |
+          echo "PR=${{ github.event.pull_request.number }}"
+          echo "TITLE=${{ github.event.pull_request.title }}"
+          echo "HEAD=${{ github.event.pull_request.head.sha }}"
+          echo "BASE=${{ github.base_ref }}"
+          if [[ "${{ github.event.pull_request.title }}" == "merge queue:"* ]]; then
+            echo "VM7_TEST_MODE=full-queue-suite"
+            echo "VM7_HOLD_SECONDS=300"
+            sleep 300
+            echo "synthetic batch failure"
+            exit 1
+          fi
+          echo "VM7_TEST_MODE=source-pr-smoke"
+          exit 0
